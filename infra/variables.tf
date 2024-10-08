@@ -15,7 +15,7 @@ variable "subscription_id" {
 
 # - - - - - - - - - - - - - NON-SENSITIVE - - - - - - - - - - - - -
 
-# Generic variables related to location, resource groups and metadata for requested resources (storage account & container)
+# Generic variables related to location, resource groups and metadata for requested resources - such as cosmos db account, database and container
 
 variable "location" {
   description = "The Azure region where resources will be created"
