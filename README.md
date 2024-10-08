@@ -11,6 +11,16 @@
 
 The script [up](up.sh) provisions Azure resources by applying our [Terraform script](infra/terraform.tf).
 
+
+## Running API
+```bash
+python -m uvicorn main:app --reload
+```
+
+
 ## Deallocate resources
 
 The script [down](down.sh) removes provisioned Azure resources running **terraform destroy**.
+
+## Postman collection
+A collection of sample request has been included under the [postman](postman) directory.
