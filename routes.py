@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from azure.cosmos import CosmosClient, exceptions
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 # Create a FastAPI router
 router = APIRouter()
@@ -10,6 +10,7 @@ router = APIRouter()
 COSMOS_CONNECTION_STRING = "KELLERESSEN70"
 DATABASE_NAME = "KELLERESSEN70"
 CONTAINER_NAME = "KELLERESSEN70"
+
 
 # Placeholder validation function
 def validate_cosmosdb_config():
@@ -20,6 +21,7 @@ def validate_cosmosdb_config():
         raise ValueError("Invalid Cosmos DB database name. Please set the correct value.")
     if CONTAINER_NAME == placeholder_value:
         raise ValueError("Invalid Cosmos DB container name. Please set the correct value.")
+
 
 # Validate configuration before proceeding
 validate_cosmosdb_config()
@@ -34,41 +36,130 @@ except ValueError as e:
 except exceptions.CosmosHttpResponseError as e:
     raise HTTPException(status_code=e.status_code, detail=str(e))
 
-# Definition can be optional if not always present
-class Definition(BaseModel):
-    id: Optional[str] = None
 
-class Item(BaseModel):
+class AbilityScores(BaseModel):
+    strength: int
+    dexterity: int
+    constitution: int
+    intelligence: int
+    wisdom: int
+    charisma: int
+
+
+class SkillProficiencies(BaseModel):
+    acrobatics: bool = False
+    animal_handling: bool = False
+    arcana: bool = False
+    athletics: bool = False
+    deception: bool = False
+    history: bool = False
+    insight: bool = False
+    intimidation: bool = False
+    investigation: bool = False
+    medicine: bool = False
+    nature: bool = False
+    perception: bool = False
+    performance: bool = False
+    persuasion: bool = False
+    religion: bool = False
+    sleight_of_hand: bool = False
+    stealth: bool = False
+    survival: bool = False
+
+
+class Equipment(BaseModel):
+    weapon: Optional[str] = None
+    armor: Optional[str] = None
+    items: List[str] = []
+
+
+class Spell(BaseModel):
+    name: str
+    level: int
+    casting_time: str
+    range: str
+    components: List[str]
+    duration: str
+
+
+class DnDHero(BaseModel):
     id: str
     name: str
-    description: Optional[str] = None
-    definition: Optional[Definition] = None
+    race: str
+    class_: str
+    level: int
+    background: Optional[str] = None
+    alignment: Optional[str] = None
 
-@router.post("/items/", response_model=Item)
-async def create_item(item: Item):
+    # Nested fields
+    ability_scores: AbilityScores
+    skill_proficiencies: SkillProficiencies
+    equipment: Equipment
+    spells: Optional[List[Spell]] = None  # Optional, only for spellcasters
+
+    hit_points: int
+    armor_class: int
+    speed: int
+
+    # Additional optional features
+    personality_traits: Optional[str] = None
+    ideals: Optional[str] = None
+    bonds: Optional[str] = None
+    flaws: Optional[str] = None
+
+
+# POST: Create a new DnD Hero
+@router.post("/heroes/", response_model=DnDHero)
+async def create_hero(hero: DnDHero):
     try:
-        container.upsert_item(item.model_dump())
-        return item
+        container.upsert_item(hero.model_dump())
+        return hero
     except exceptions.CosmosHttpResponseError as e:
         raise HTTPException(status_code=e.status_code, detail=str(e))
 
-@router.get("/items/{item_id}", response_model=Item)
-async def read_item(item_id: str):
-    try:
-        item = container.read_item(item_id, partition_key=item_id)
-        return item
-    except exceptions.CosmosResourceNotFoundError:
-        raise HTTPException(status_code=404, detail="Item not found")
 
-@router.get("/items/", response_model=List[Item])
-async def read_items():
-    items = list(container.read_all_items())
-    return items
-
-@router.delete("/items/{item_id}", response_model=dict)
-async def delete_item(item_id: str):
+# GET: Retrieve a hero by ID
+@router.get("/heroes/{hero_id}", response_model=DnDHero)
+async def read_hero(hero_id: str):
     try:
-        container.delete_item(item_id, partition_key=item_id)
-        return {"message": f"Item with id '{item_id}' deleted successfully"}
+        hero = container.read_item(hero_id, partition_key=hero_id)
+        return hero
     except exceptions.CosmosResourceNotFoundError:
-        raise HTTPException(status_code=404, detail="Item not found")
+        raise HTTPException(status_code=404, detail="Hero not found")
+
+
+# GET: Retrieve all heroes
+@router.get("/heroes/", response_model=List[DnDHero])
+async def read_heroes():
+    heroes = list(container.read_all_items())
+    return heroes
+
+
+# DELETE: Delete a hero by ID
+@router.delete("/heroes/{hero_id}", response_model=dict)
+async def delete_hero(hero_id: str):
+    try:
+        container.delete_item(hero_id, partition_key=hero_id)
+        return {"message": f"Hero with id '{hero_id}' deleted successfully"}
+    except exceptions.CosmosResourceNotFoundError:
+        raise HTTPException(status_code=404, detail="Hero not found")
+
+
+@router.get("/heroes-fireball-low-ac", response_model=List[DnDHero])
+async def get_fireball_heroes_with_low_ac():
+    query = """
+    SELECT *
+    FROM c
+    WHERE ARRAY_CONTAINS(c.spells, {"name": "Fireball"}, true)
+    AND c.armor_class < 20
+    """
+    try:
+        # Execute the query
+        results = list(container.query_items(
+            query=query,
+            enable_cross_partition_query=True
+        ))
+        return results
+    except exceptions.CosmosHttpResponseError as e:
+        raise HTTPException(status_code=e.status_code, detail=str(e))
+

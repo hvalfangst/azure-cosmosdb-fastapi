@@ -4,4 +4,4 @@
 set -e
 
 echo "Deleting Azure resources..."
-terraform -chdir=infra destroy;
+terraform -chdir=infra destroy -parallelism=10

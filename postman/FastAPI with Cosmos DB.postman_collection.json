@@ -7,29 +7,72 @@
 	},
 	"item": [
 		{
-			"name": "List items",
+			"name": "List heroes",
 			"request": {
 				"method": "GET",
-				"header": []
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/heroes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"heroes"
+					]
+				}
 			},
 			"response": []
 		},
 		{
-			"name": "Get item",
+			"name": "List heroes with low and fireball",
 			"request": {
 				"method": "GET",
-				"header": []
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/heroes/fireball-low-ac",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"heroes",
+						"fireball-low-ac"
+					]
+				}
 			},
 			"response": []
 		},
 		{
-			"name": "Post item",
+			"name": "Get hero",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/heroes/123",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"heroes",
+						"123"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create hero",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"id\": \"12345\",\r\n    \"name\": \"Example Item\",\r\n    \"description\": \"This is an example description for the item\"\r\n}",
+					"raw": "{\r\n    \"id\": \"123\",\r\n    \"name\": \"Gandalf\",\r\n    \"race\": \"Maia\",\r\n    \"class_\": \"Wizard\",\r\n    \"level\": 20,\r\n    \"background\": \"Sage\",\r\n    \"alignment\": \"Neutral Good\",\r\n    \"ability_scores\": {\r\n        \"strength\": 10,\r\n        \"dexterity\": 14,\r\n        \"constitution\": 16,\r\n        \"intelligence\": 20,\r\n        \"wisdom\": 18,\r\n        \"charisma\": 17\r\n    },\r\n    \"skill_proficiencies\": {\r\n        \"arcana\": true,\r\n        \"history\": true,\r\n        \"insight\": true,\r\n        \"perception\": true\r\n    },\r\n    \"equipment\": {\r\n        \"weapon\": \"Glamdring (Sword)\",\r\n        \"armor\": \"Grey Robes\",\r\n        \"items\": [\"Staff of Power\", \"Pipe\", \"Elven Cloak\"]\r\n    },\r\n    \"spells\": [\r\n        {\r\n            \"name\": \"Fireball\",\r\n            \"level\": 3,\r\n            \"casting_time\": \"1 action\",\r\n            \"range\": \"150 feet\",\r\n            \"components\": [\"V\", \"S\", \"M\"],\r\n            \"duration\": \"Instantaneous\"\r\n        },\r\n        {\r\n            \"name\": \"Shield\",\r\n            \"level\": 1,\r\n            \"casting_time\": \"1 reaction\",\r\n            \"range\": \"Self\",\r\n            \"components\": [\"V\", \"S\"],\r\n            \"duration\": \"1 round\"\r\n        }\r\n    ],\r\n    \"hit_points\": 120,\r\n    \"armor_class\": 15,\r\n    \"speed\": 30,\r\n    \"personality_traits\": \"Wise and mysterious, often prefers indirect methods.\",\r\n    \"ideals\": \"Seek knowledge and protect Middle-Earth.\",\r\n    \"bonds\": \"Fellowship of the Ring.\",\r\n    \"flaws\": \"Burdened with the knowledge of many tragic events.\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -37,34 +80,34 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8000/items",
+					"raw": "http://localhost:8000/heroes",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8000",
 					"path": [
-						"items"
+						"heroes"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Delete item",
+			"name": "Delete hero",
 			"request": {
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/items/12345",
+					"raw": "http://localhost:8000/heroes/123",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8000",
 					"path": [
-						"items",
-						"12345"
+						"heroes",
+						"123"
 					]
 				}
 			},
