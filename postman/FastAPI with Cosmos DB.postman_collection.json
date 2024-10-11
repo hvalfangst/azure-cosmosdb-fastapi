@@ -51,15 +51,16 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/heroes/123",
+					"raw": "http://localhost:8000/api/heroes/1234",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8000",
 					"path": [
+						"api",
 						"heroes",
-						"123"
+						"1234"
 					]
 				}
 			},
@@ -99,15 +100,16 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/heroes/123",
+					"raw": "http://localhost:8000/api/heroes/1234",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8000",
 					"path": [
+						"api",
 						"heroes",
-						"123"
+						"1234"
 					]
 				}
 			},

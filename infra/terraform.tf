@@ -4,88 +4,98 @@ provider "azurerm" {
   subscription_id = var.subscription_id
 }
 
+# Resource Group for Cosmos DB resources
 resource "azurerm_resource_group" "hvalfangst" {
   location = var.location
   name     = var.resource_group_name
 }
 
+# Cosmos DB Account
 resource "azurerm_cosmosdb_account" "hvalfangst" {
-  name                = var.cosmosdb_account_name
-  location            = azurerm_resource_group.hvalfangst.location
-  resource_group_name = azurerm_resource_group.hvalfangst.name
-  offer_type = "Standard"
-  kind      = "GlobalDocumentDB"
+  name                = var.cosmosdb_account_name   # Unique name for Cosmos DB account.
+  location            = azurerm_resource_group.hvalfangst.location  # Location where the Cosmos DB account is hosted.
+  resource_group_name = azurerm_resource_group.hvalfangst.name      # The resource group that Cosmos DB belongs to.
 
-  automatic_failover_enabled = false
+  offer_type = "Standard"  # Offer type for the Cosmos DB account. Use "Standard" for most use cases.
+  # Other possible values:
+  # - "Reserved": Reserved capacity offers a discounted rate in exchange for committing to a specific throughput capacity for a one- or three-year period.
+  #               Suitable for predictable workloads with steady throughput requirements.
+
+
+  kind      = "GlobalDocumentDB"  # Specifies the kind of database. Options include:
+  # - GlobalDocumentDB (NoSQL database)
+  # - MongoDB (MongoDB API)
+  # - Cassandra (Cassandra API)
+  # - Gremlin (Graph API)
+  # - Table (Azure Table Storage API)
+
+  automatic_failover_enabled = false  # When set to true, enables automatic failover to the secondary region in case of failure.
 
   # Consistency policy configuration for the Cosmos DB account.
-  # Bounded Staleness consistency is selected here, which offers a balance between strong consistency and higher availability.
-  # It allows some staleness but within defined limits of time (in seconds) or operation count (staleness prefix).
   consistency_policy {
-    consistency_level       = "BoundedStaleness"  # Consistency level set to "BoundedStaleness"
-    max_interval_in_seconds = 300  # Reads can lag behind writes by up to 300 seconds (5 minutes).
-    max_staleness_prefix    = 100000  # Reads can lag by up to 100,000 operations.
+    consistency_level       = "BoundedStaleness"  # The consistency level applied to the database. Options include:
+    # - Strong: Guarantees no data loss but has higher latency.
+    # - BoundedStaleness: Allows some staleness but within defined limits.
+    # - Session: Guarantees consistency within a session (user-specific consistency).
+    # - ConsistentPrefix: Writes are always read in the order they're made.
+    # - Eventual: Offers the lowest latency but eventual consistency.
 
-    # Other possible consistency levels and their descriptions:
-
-    # 1. Strong Consistency:
-    # consistency_level = "Strong"
-    # Example: All reads return the most recent committed write, ensuring no stale data. Suitable for mission-critical applications where data must always be up to date (e.g., banking transactions).
-
-    # 2. Session Consistency:
-    # consistency_level = "Session"
-    # Example: Ensures consistency within a user session, so a user will always read their own writes (read-your-writes). Suitable for scenarios like shopping carts or user-specific data (e.g., cloud document editing).
-
-    # 3. Consistent Prefix:
-    # consistency_level = "ConsistentPrefix"
-    # Example: Guarantees that writes are seen in order, but data may be stale. If updates A → B → C are made, a read will never show C → A or B → A, but may show A → B or A. Suitable for scenarios where ordering is important, but up-to-date information is less critical (e.g., activity logs).
-
-    # 4. Eventual Consistency:
-    # consistency_level = "Eventual"
-    # Example: Provides the lowest latency but no guarantees on order or staleness. Suitable for scenarios where high performance is required and consistency can be relaxed (e.g., social media feed updates).
+    max_interval_in_seconds = 300  # Maximum lag (in seconds) between reads and writes in "BoundedStaleness" consistency.
+    max_staleness_prefix    = 100000  # Maximum lag in terms of the number of operations in "BoundedStaleness" consistency.
   }
-
 
   geo_location {
-    location          = azurerm_resource_group.hvalfangst.location
-    failover_priority = 0
+    location          = azurerm_resource_group.hvalfangst.location  # Specifies the Azure region for Cosmos DB.
+    failover_priority = 0  # Defines the priority of this region for failover (0 being the primary region).
   }
 }
 
-# Cosmos DB SQL Database
+# SQL Database for Cosmos DB (using NoSQL API)
 resource "azurerm_cosmosdb_sql_database" "hvalfangst" {
-  name                = var.cosmosdb_database_name
-  resource_group_name = azurerm_cosmosdb_account.hvalfangst.resource_group_name
-  account_name        = azurerm_cosmosdb_account.hvalfangst.name
+  name                = var.cosmosdb_database_name  # Name of the Cosmos DB SQL database.
+  resource_group_name = azurerm_cosmosdb_account.hvalfangst.resource_group_name  # Resource group for the database.
+  account_name        = azurerm_cosmosdb_account.hvalfangst.name  # Cosmos DB account to which this database belongs.
 }
 
-# Cosmos DB SQL Container
+# SQL Container within the Cosmos DB SQL Database
 resource "azurerm_cosmosdb_sql_container" "hvalfangst" {
-  name                  = var.cosmosdb_container_name
-  resource_group_name   = azurerm_cosmosdb_account.hvalfangst.resource_group_name
-  account_name          = azurerm_cosmosdb_account.hvalfangst.name
-  database_name         = azurerm_cosmosdb_sql_database.hvalfangst.name
-  partition_key_paths   = ["/id"]
-  partition_key_version = 1
-  throughput            = 400
+  name                  = var.cosmosdb_container_name  # Name of the container (similar to a table).
+  resource_group_name   = azurerm_cosmosdb_account.hvalfangst.resource_group_name  # Resource group for the container.
+  account_name          = azurerm_cosmosdb_account.hvalfangst.name  # Cosmos DB account associated with the container.
+  database_name         = azurerm_cosmosdb_sql_database.hvalfangst.name  # Name of the database that contains this container.
 
+  partition_key_paths   = ["/id"]  # Partition key is used to distribute data across partitions for scalability.
+  # Here, it's set to the "id" field. Partitioning helps in efficient query processing.
+
+  partition_key_version = 1  # Specifies the partition key version. Default is 1.
+
+  throughput            = 400  # Specifies the throughput (RU/s) for the container. Can be manually set or autoscale.
+
+  # Indexing policy configuration for the container.
   indexing_policy {
-    indexing_mode = "consistent"
+    indexing_mode = "consistent"  # Options are:
+    # - "consistent": Ensures that all items are indexed immediately.
+    # - "lazy": Indexing is done asynchronously.
+    # - "none": Indexing is disabled.
 
+    # Define paths to include in indexing
     included_path {
-      path = "/*"
+      path = "/*"  # Include all paths for indexing. Can specify specific document fields as needed.
     }
 
     included_path {
-      path = "/included/?"
+      path = "/included/?"  # This path is also included for indexing. Can customize for specific queries.
     }
 
+    # Define paths to exclude from indexing
     excluded_path {
-      path = "/excluded/?"
+      path = "/excluded/?"  # Paths that you do not want to be indexed (reduces costs for unnecessary fields).
     }
   }
 
+  # Unique key constraints for the container.
   unique_key {
-    paths = ["/idlong", "/idshort"]
+    paths = ["/idlong", "/idshort"]  # Ensures unique values for documents that have both "/idlong" and "/idshort" fields.
+    # This prevents duplicates within a container.
   }
 }
